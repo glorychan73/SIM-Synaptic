@@ -1,11 +1,10 @@
 from fastapi import FastAPI
-from app.schemas.item import ItemCreate
-from fastapi import FastAPI
 
 from app.core.database import Base, engine
-from app.models.item import Item
+from app.routers import items
 
 Base.metadata.create_all(bind=engine)
+
 app = FastAPI(title="Mon API")
 
 
@@ -14,10 +13,4 @@ def read_root():
     return {"message": "Hello, débutant !"}
 
 
-@app.post("/items")
-def create_item(item: ItemCreate):
-    return {
-        "message": "Item créé avec succès",
-        "item": item,
-    }
-
+app.include_router(items.router)
