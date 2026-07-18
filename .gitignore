@@ -1,0 +1,18 @@
+# Environnement virtuel
+.venv/
+
+# Variables d'environnement
+.env
+
+# Cache Python
+__pycache__/
+*.py[cod]
+
+# Cache pytest
+.pytest_cache/
+
+# VS Code
+.vscode/
+
+# Docker
+*.log
