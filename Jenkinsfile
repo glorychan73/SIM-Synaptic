@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        COMPOSE_PROJECT_NAME = "sim-synaptic-pipeline"
+    }
+
     stages {
 
         stage('Checkout') {
@@ -17,14 +21,30 @@ pipeline {
 
         stage('Tests') {
             steps {
-                sh 'pytest'
+                sh 'docker compose run --rm api pytest'
             }
         }
 
         stage('Lint') {
             steps {
-                sh 'flake8 .'
+                sh 'docker compose run --rm api flake8 .'
             }
+        }
+
+    }
+
+    post {
+
+        always {
+            sh 'docker compose down || true'
+        }
+
+        success {
+            echo '✅ Pipeline terminée avec succès.'
+        }
+
+        failure {
+            echo '❌ Pipeline échouée.'
         }
     }
 }
