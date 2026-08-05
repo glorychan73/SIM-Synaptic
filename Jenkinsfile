@@ -3,21 +3,35 @@ pipeline {
 
     stages {
 
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Build') {
             steps {
-                echo 'Compilation du projet'
+                sh '''
+                    docker compose build
+                '''
             }
         }
 
         stage('Tests') {
             steps {
-                echo 'Exécution des tests'
+                sh '''
+                    source /opt/jenkins-venv/bin/activate
+                    pytest
+                '''
             }
         }
 
         stage('Lint') {
             steps {
-                echo 'Analyse du code'
+                sh '''
+                    source /opt/jenkins-venv/bin/activate
+                    flake8 .
+                '''
             }
         }
 
