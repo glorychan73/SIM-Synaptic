@@ -13,6 +13,17 @@ pipeline {
             }
         }
 
+        stage('Create .env') {
+            steps {
+                writeFile file: '.env', text: '''
+POSTGRES_USER=glory
+POSTGRES_PASSWORD=1234
+POSTGRES_DB=sim_synaptic
+DATABASE_URL=postgresql://glory:1234@db:5432/sim_synaptic
+'''
+            }
+        }
+
         stage('Build') {
             steps {
                 sh 'docker compose build'
@@ -39,7 +50,6 @@ pipeline {
     }
 
     post {
-
         always {
             sh 'docker compose down'
         }
