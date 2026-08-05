@@ -33,7 +33,10 @@ DATABASE_URL=postgresql://glory:1234@db:5432/sim_synaptic
 
         stage('Start Containers') {
             steps {
-                sh 'docker compose -f ${COMPOSE_FILE} up -d'
+                sh '''
+                docker compose -f ${COMPOSE_FILE} down -v || true
+                docker compose -f ${COMPOSE_FILE} up -d
+                '''
             }
         }
 
