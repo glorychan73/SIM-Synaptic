@@ -19,32 +19,37 @@ pipeline {
             }
         }
 
+        stage('Start Containers') {
+            steps {
+                sh 'docker compose up -d'
+            }
+        }
+
         stage('Tests') {
             steps {
-                sh 'docker compose run --rm api pytest'
+                sh 'docker compose exec -T api pytest'
             }
         }
 
         stage('Lint') {
             steps {
-                sh 'docker compose run --rm api flake8 .'
+                sh 'docker compose exec -T api flake8 app tests'
             }
         }
-
     }
 
     post {
 
         always {
-            sh 'docker compose down || true'
+            sh 'docker compose down'
         }
 
         success {
-            echo '✅ Pipeline terminée avec succès.'
+            echo 'Pipeline exécuté avec succès.'
         }
 
         failure {
-            echo '❌ Pipeline échouée.'
+            echo 'Le pipeline a échoué.'
         }
     }
 }
