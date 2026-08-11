@@ -1,7 +1,6 @@
 services:
   db:
     image: postgres:15
-    container_name: sim-synaptic-ci-db
 
     env_file:
       - .env
@@ -14,7 +13,6 @@ services:
 
   api:
     build: .
-    container_name: sim-synaptic-ci-api
 
     depends_on:
       - db

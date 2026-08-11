@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        COMPOSE_PROJECT_NAME = "sim-synaptic-ci"
         COMPOSE_FILE = "docker-compose.ci.yml"
     }
 
@@ -26,83 +27,47 @@ DATABASE_URL=postgresql://glory:1234@db:5432/sim_synaptic
 
         stage('Build') {
             steps {
-                sh '''
-                    docker compose -f ${COMPOSE_FILE} build
-                '''
+                sh 'docker compose build'
             }
         }
 
         stage('Start Containers') {
             steps {
-                sh '''
-                    docker compose -f ${COMPOSE_FILE} down -v || true
-                    docker compose -f ${COMPOSE_FILE} up -d
-                '''
+                sh 'docker compose down -v --remove-orphans || true'
+                sh 'docker compose up -d'
             }
         }
 
         stage('Check Containers') {
             steps {
-                sh '''
-                    docker compose -f ${COMPOSE_FILE} ps
-
-                    test "$(docker inspect -f '{{.State.Status}}' \
-                        sim-synaptic-ci-api)" = "running"
-
-                    test "$(docker inspect -f '{{.State.Status}}' \
-                        sim-synaptic-ci-db)" = "running"
-                '''
+                sh 'docker compose ps'
+                sh 'docker compose ps --status running'
             }
         }
 
         stage('Wait Database') {
             steps {
-                sh '''
-                    echo "Attente de PostgreSQL..."
-
-                    for i in $(seq 1 30); do
-                        if docker compose -f ${COMPOSE_FILE} \
-                            exec -T db pg_isready \
-                            -U glory \
-                            -d sim_synaptic; then
-                            echo "PostgreSQL est prêt."
-                            exit 0
-                        fi
-
-                        echo "PostgreSQL n'est pas encore prêt..."
-                        sleep 2
-                    done
-
-                    echo "PostgreSQL n'est pas disponible."
-                    exit 1
-                '''
+                sh 'sleep 10'
             }
         }
 
         stage('Tests') {
             steps {
-                sh '''
-                    docker compose -f ${COMPOSE_FILE} \
-                        exec -T api pytest
-                '''
+                sh 'docker compose exec -T api pytest'
             }
         }
 
         stage('Lint') {
             steps {
-                sh '''
-                    docker compose -f ${COMPOSE_FILE} \
-                        exec -T api flake8 app tests
-                '''
+                sh 'docker compose exec -T api flake8 app tests'
             }
         }
     }
 
     post {
         always {
-            sh '''
-                docker compose -f ${COMPOSE_FILE} down -v || true
-            '''
+            sh 'docker compose down -v --remove-orphans || true'
+            sh 'rm -f .env || true'
         }
 
         success {
